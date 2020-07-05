@@ -1,6 +1,6 @@
 ---
 - name: Convert Adhoc to playbook
-  hosts: nodes
+  hosts: all
 
   tasks:
   - name: ping pong

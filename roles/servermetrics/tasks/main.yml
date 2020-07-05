@@ -1,0 +1,62 @@
+---
+# tasks file for roles/servermetrics
+- name: Install Development Tools
+  yum:
+    name: "@Development tools"
+    state: present
+
+- name: Install Python3 Development
+  yum:
+    name: python3-devel
+    state: present
+
+- name: install using pip requirements
+  pip:
+    name:
+      - influxdb
+      - psutil
+    executable: pip3
+
+- name: test servermetrics.py and render when succesfull
+  block:
+    - name: render test servermetrics.py in /home/training
+      template:
+        src: servermetrics.py.j2
+        dest: "{{ path }}/testservermetrics.py"
+        owner: "{{ owner }}"
+        group: "{{ group }}"
+        mode: '0755'
+
+    - name: test servermetrics.py
+      shell: "python3 {{ path }}/testservermetrics.py test"
+      register: testservermetrics
+
+    - name: remove test file
+      file:
+        path: "{{ path }}/testservermetrics.py"
+        state: absent
+
+    - name: render prod servermetrics.py in /home/training
+      template:
+        src: servermetrics.py.j2
+        dest: "{{ path }}/servermetrics.py"
+        owner: "{{ owner }}"
+        group: "{{ group }}"
+        mode: '0755'
+      register: agentout
+
+    - name: run once servermetrics.py
+      shell: "python3 /home/training/servermetrics.py prod"
+      when: agentout.changed
+  rescue:
+    - name: remove test file
+      file:
+        path: "{{ path }}/testservermetrics.py"
+        state: absent
+
+- name: add in crontab
+  cron:
+    name: server_metrics
+    minute: "*/2"
+    job: "python3 {{ path }}/servermetrics.py prod"
+

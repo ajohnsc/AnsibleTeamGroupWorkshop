@@ -28,5 +28,5 @@ data_points = [
 if sys.argv[1] == "test":
 	print(data_points)
 else:
-	client = InfluxDBClient("{{ ip }}",{{ port }}, "{{ user }}", "{{ password }}", "{{ measurement }}")
+	client = InfluxDBClient("{{ ip }}",{{ port }},"{{ user }}", "{{ password }}", "{{ measurement }}")
 	client.write_points(data_points)
